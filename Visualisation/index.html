@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Heatmaps</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+      #floating-panel {
+        background-color: #fff;
+        border: 1px solid #999;
+        left: 25%;
+        padding: 5px;
+        position: absolute;
+        top: 10px;
+        z-index: 5;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="floating-panel">
+      <button onclick="togglePeopleHeatmap()">Toggle people density</button>
+      <button onclick="toggleBinHeatmap()">Toggle bins density</button>
+      <button onclick="showAllBins()">Show all bins</button>
+      <button onclick="showMisallignedBins()">Show misclassified bins</button>
+      <!-- <button onclick="toggleTotalDensity()">Toggle total density</button>
+      <button onclick="toggleLocationDensity()">Toggle location density</button> -->
+      <!-- <button onclick="changeRadius()">Change radius</button>
+      <button onclick="changeOpacity()">Change opacity</button> -->
+    </div>
+    <div id="map"></div>
+
+    <script type="text/javascript" src="js/bins.js"></script>
+    <script type="text/javascript" src="js/traffic.js"></script>
+    <script>
+
+      // This example requires the Visualization library. Include the libraries=visualization
+      // parameter when you first load the API. For example:
+      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
+
+      var map, heatmap, markerCluster;
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 13,
+          center: {lat: 60.1699, lng: 24.9384}
+          // mapTypeId: 'satellite'
+        });
+
+        heatmap = new google.maps.visualization.HeatmapLayer({
+          data: getPeoplePoints(),
+          map: map
+        });
+
+        heatmap.set('radius', 20);
+
+        // markers =
+
+        var markers = getMarkers(false);
+
+        markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+      }
+
+      function togglePeopleHeatmap() {
+        // heatmap.setMap(heatmap.getMap() ? null : map);
+        heatmap.setData(getPeoplePoints());
+      }
+
+      function toggleBinHeatmap() {
+        heatmap.setData(getBinPoints());
+      }
+
+      function showAllBins() {
+        var markers = getMarkers(false);
+        markerCluster.clearMarkers();
+        markerCluster.addMarkers(markers);
+      }
+
+      function showMisallignedBins() {
+        var markers = getMarkers(true);
+        markerCluster.clearMarkers();
+        markerCluster.addMarkers(markers);
+      }
+
+      function toggleTotalDensity() {
+        heatmap.setMap(heatmap.getMap() ? null : map);
+      }
+
+      function toggleLocationDensity() {
+        heatmap.setMap(heatmap.getMap() ? null : map);
+      }
+
+      function changeGradient() {
+        var gradient = [
+          'rgba(0, 255, 255, 0)',
+          'rgba(0, 255, 255, 1)',
+          'rgba(0, 191, 255, 1)',
+          'rgba(0, 127, 255, 1)',
+          'rgba(0, 63, 255, 1)',
+          'rgba(0, 0, 255, 1)',
+          'rgba(0, 0, 223, 1)',
+          'rgba(0, 0, 191, 1)',
+          'rgba(0, 0, 159, 1)',
+          'rgba(0, 0, 127, 1)',
+          'rgba(63, 0, 91, 1)',
+          'rgba(127, 0, 63, 1)',
+          'rgba(191, 0, 31, 1)',
+          'rgba(255, 0, 0, 1)'
+        ]
+        heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+      }
+
+      function changeRadius() {
+        heatmap.set('radius', heatmap.get('radius') ? null : 60);
+      }
+
+      function changeOpacity() {
+        heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
+      }
+
+      // Heatmap data: 500 Points
+      function getPeoplePoints() {
+        map_points = [];
+        for (var i in traffic_locations) {
+          p = traffic_locations[i];
+          // console.log(p);
+          map_points.push({location:new google.maps.LatLng(p[0], p[1]), weight:p[2]});
+        }
+        return map_points;
+      }
+
+      function getBinPoints() {
+        map_points = [];
+        for (var i in bin_locations) {
+          p = bin_locations[i];
+          // console.log(p);
+          map_points.push({location:new google.maps.LatLng(p[0], p[1]), weight:1});
+        }
+        return map_points;
+      }
+
+
+      function getMarkers(filter_alligned) {
+        map_markers = [];
+        for (var i in bin_locations) {
+          p = bin_locations[i];
+          // console.log(p);
+          var content = '<div id="content">'+
+            'Category: ' + p[2] + '<br>' +
+            'Category (predicted): ' + p[4] + '<br>' +
+            'Type: ' + p[3] + '<br>' +
+            'Throughput: ' + p[5] + '<br>' +
+            '</div>';
+
+          var infowindow = new google.maps.InfoWindow({
+            content: content
+          });
+
+          if (p[2] == p[4] && filter_alligned) {
+            continue;
+          }
+
+          var image = {
+            url: 'icon_1.png',
+            // This marker is 20 pixels wide by 32 pixels high.
+            size: new google.maps.Size(20, 32),
+            // The origin for this image is (0, 0).
+            origin: new google.maps.Point(0, 0),
+            // The anchor for this image is the base of the flagpole at (0, 32).
+            anchor: new google.maps.Point(0, 32)
+          };
+
+          var marker = new google.maps.Marker({position: {lat:p[0], lng:p[1]}});
+
+
+          google.maps.event.addListener(marker,'click', (function(marker,content,infowindow){
+              return function() {
+                  infowindow.setContent(content);
+                  infowindow.open(map,marker);
+              };
+          })(marker,content,infowindow));
+          // marker.addListener('click', function() {
+          //   infowindow.open(map, marker);
+          // });
+          map_markers.push(marker);
+        }
+        return map_markers;
+      }
+    </script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYGu8sD8eiHbzQiiwWB1uUazM_N3FvpA8&libraries=visualization&callback=initMap">
+    </script>
+  </body>
+</html>
