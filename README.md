@@ -1,6 +1,6 @@
 ## Inspiration
 
-This project started out as an attempt to optimise travel routes of trash collectors for STARA BigData track. But as we dug dipper into the data, we discovered an underlying problem with trash bin classification and developed a general approach that estimates a demand based on the population density around a bin. The developed technology can also be applied to optimize public transportation and predict movement patterns within a city.
+This project started out as an desire to optimise travel routes of trash collectors for STARA BigData track. But as we dug dipper into the data, we discovered an underlying problem with trash bin classification and developed a general approach that estimates a demand based on the population density around a bin. The developed technology can also be applied to optimize public transportation and predict movement patterns within a city.
 
 ## What it does
 
@@ -13,9 +13,9 @@ We extensively collaborated with STARA to understand their needs. The developmen
 ## Challenges we ran into
 
 There were numerous challenges that we encountered:
-- The location data of the trash bins was in EUREF-FIN coordinates system, which is significantly different from GPS and conversion is not straight-forward
 - Handling large amounts of data (126Gb of compressed text files) using Hadoop and Google Cloud platform
 - Uploading and storage of large amounts of data
+- The location data of the trash bins was in EUREF-FIN coordinates system, which is significantly different from GPS and conversion is not straight-forward
 - Studying and discovering various APIs that were provided by the organizers
 - Data processing to transform data into uniform representation
 
@@ -27,7 +27,7 @@ There were numerous challenges that we encountered:
 ## What we learned
 
 - An extensive collaboration with the customer allowed us to better understand their needs and provide a better solution. We also got valuable insights into the data, easing the process of discovering relations
-- Distributed computing uses different algorithms for familiar tasks (it is not trivial to compute mean on a MapReduce job)
+- Distributed computing uses different algorithms for familiar tasks (some tasks are not trivial to implement in a MapReduce job)
 
 ## What's next for CityFlow
 
@@ -38,3 +38,5 @@ The next step would be to use flow data to predict movement patterns. Having don
 After that, we could develop a prioritisation model to assign more resources to areas with higher demand and dynamically allocate more resources to these areas. 
 
 Helsinki also uses a network of smart trash bins that can estimate their filling level. We will gather historical data on filling rates for the smart bins and see if there are correlations between population density and how fast the bin fills. Having developed the regressive model for smart trash bin filling rates, we will extrapolate these models and 'dump' (ordinary) bins, reducing the demand for smart bins and cutting costs.
+
+In addition, having these datasets we will be able to provide recommendations about trash bins placement (in case if we need to move some or add more in crowded places)
